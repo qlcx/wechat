@@ -3,7 +3,7 @@
 var Promise = require('bluebird')
 //对node.js的request模块进行promise化
 var request = Promise.promisify(require('request'))
-var util = require('/util')
+var util = require('./util')
 
 var prefix = 'https://api.weixin.qq.com/cgi-bin/'
 var api = {
@@ -31,7 +31,7 @@ function Wechat(opts) {
 
       //判断票据合法性
       if(that.isValidAccessToken(data)) {
-        Promise.resolve(data)
+        return Promise.resolve(data)
         /*
         Promise.resolve('foo')
         // 等价于
