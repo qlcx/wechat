@@ -7,7 +7,7 @@ var getRawBody = require('raw-body')
 var util = require('./util')
 
 module.exports = function(opts) {
-  //var wechat = new Wechat(opts)
+  var wechat = new Wechat(opts)
 
   return function *(next) {
     var that = this
