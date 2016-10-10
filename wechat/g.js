@@ -48,26 +48,15 @@ module.exports = function(opts) {
       //格式化json数据
       var message = util.formatMessage(content.xml)
 
-      //判断消息类型是否是一个事件
-      if(message.MsgType === 'event') {
-        //判断是否是订阅事件
-        if(message.Event === 'subscribe') {
-          var now = new Date().getTime()
+      //将解析后的数据挂载到this上
+      this.weixin = message
 
-          //回复消息格式
-          that.status = 200
-          that.type = 'application/xml'
-          that.body = '<xml>'
-            + '<ToUserName><![CDATA['+message.FromUserName+']]></ToUserName>'
-            + '<FromUserName><![CDATA['+message.ToUserName+']]></FromUserName>'
-            + '<CreateTime>'+now+'</CreateTime>'
-            + '<MsgType><![CDATA[text]]></MsgType>'
-            + '<Content><![CDATA[你好]]></Content>'
-            + '</xml>'
+      //call 用来改变函数运行时的上下文(函数内部this的指向)
+      //暂停处理逻辑，控制权交给业务逻辑(消息类型判断以及回复信息处理)
+      yield handler.call(this, next)
 
-          return
-        }
-      }
+      //重新获得控制权，并回复消息
+      wechat.reply.call(this)
     }
   }
 }
