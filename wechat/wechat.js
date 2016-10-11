@@ -1,6 +1,7 @@
 'use strict'
 
 var Promise = require('bluebird')
+var _ = require('lodash')
 //对node.js的request模块进行promise化
 var request = Promise.promisify(require('request'))
 var util = require('./util')
@@ -9,7 +10,16 @@ var fs = require('fs')
 var prefix = 'https://api.weixin.qq.com/cgi-bin/'
 var api = {
   accessToken: prefix + 'token?grant_type=client_credential',
-  upload: prefix + 'media/upload?',
+  temporary: {
+    //临时素材
+    upload: prefix + 'media/upload?',
+  },
+  permanent: {
+    //永久素材
+    upload: prefix + 'material/add_material?',
+    uploadNews: prefix + 'material/add_news?',
+    uploadNewsPic: prefix + 'media/uploadimg?',
+  }
 }
 
 //处理access_toke  有效期7200s
@@ -107,17 +117,55 @@ Wechat.prototype.updateAccessToken = function(data) {
 }
 
 //上传临时素材
-Wechat.prototype.uploadMaterial = function(type, filepath) {
+Wechat.prototype.uploadMaterial = function(type, material, permanent) {
   var that = this
-  var form = {
-    media: fs.createReadStream(filepath)
+  var form ={}
+  //默认为临时素材
+  var uploadUrl = api.temporary.upload
+
+  if(permanent) {
+    //如果有permanent参数则设置为永久素材
+    uploadUrl = api.permanent.upload
+
+    //将permanent上的属性合并到form对象
+    _.extend(form, permanent)
   }
+
+  if(type === 'pic') {
+    //类型为图像
+    uploadUrl = api.permanent.uploadNewsPic
+  }
+
+  if(type === 'news') {
+    //类型为图文
+    uploadUrl = api.permanent.uploadNews
+
+    form = material
+  } else {
+    form.media = fs.createReadStream(material)
+  }
+
   
   return new Promise(function(resolve, reject) {
     that
       .fetchAccessToken()
       .then(function(data) {
-        var url = api.upload + 'access_token=' + data.access_token + '&type=' + type
+        var url = uploadUrl + 'access_token=' + data.access_token
+        if(!permanent) {
+          url += '&type=' + type
+        } else {
+          form.access_token = data.access_token
+        }
+
+        var options = {
+          method: 'POST',
+          url: url,
+        }
+        if(type === 'news') {
+          options.body = form
+        } else {
+          options.formData = form
+        }
 
         request({method: 'POST', url: url, formData: form}).then(function(res) {
           var _data = JSON.parse(res.body)

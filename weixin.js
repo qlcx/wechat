@@ -88,13 +88,32 @@ exports.reply = function* (next) {
 
       reply = {
         type: 'music',
-        title: '回复音乐音乐',
+        title: '回复音乐内容',
         description: '放松一下',
         musiceUrl: 'http://mp3.haoduoge.com/s/2016-10-11/1476191250.mp3',
         thumbMediaId: data.media_id,
       }
       console.log(reply)
-    }
+    } else if(content === '8') {
+      var data = yield wechatApi.uploadMaterial('image', __dirname + '/2.jpg', {type: 'image'})
+
+      reply = {
+        type: 'image',
+        mediaId: data.media_id,
+      }
+      console.log(reply)
+    } else if(content === '9') {
+      var data = yield wechatApi.uploadMaterial('video', __dirname + '/6.mp4', {type: 'video', description: '{"title":"Really a nice place", "introduction": "adsfdsafsdaf"}'})
+
+      console.log(data)
+      reply = {
+        type: 'video',
+        title: '回复视频内容',
+        description: '打个篮球玩玩',
+        mediaId: data.media_id,
+      }
+      console.log(reply)
+    } 
 
     this.body = reply
   }
