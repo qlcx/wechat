@@ -1,5 +1,10 @@
 'use strict'
 
+var config = require('./config')
+var Wechat = require('./wechat/wechat')
+
+var wechatApi = new Wechat(config.wechat)
+
 exports.reply = function* (next) {
   var message = this.weixin
 
@@ -56,6 +61,35 @@ exports.reply = function* (next) {
         picUrl: 'https://github.com/qlcx/img/blob/master/qlcx-blog%E2%80%98s%20img/axure%E5%AD%A6%E4%B9%A0/1.2.png',
         url: 'http://nodejs.org'
       }]
+    } else if(content === '5') {
+      var data = yield wechatApi.uploadMaterial('image', __dirname + '/2.jpg')
+
+      reply = {
+        type: 'image',
+        mediaId: data.media_id,
+      }
+      console.log(reply)
+    } else if(content === '6') {
+      var data = yield wechatApi.uploadMaterial('video', __dirname + '/6.mp4')
+
+      reply = {
+        type: 'video',
+        title: '回复视频内容',
+        description: '打个篮球玩玩',
+        mediaId: data.media_id,
+      }
+      console.log(reply)
+    } else if(content === '7') {
+      var data = yield wechatApi.uploadMaterial('image', __dirname + '/2.jpg')
+
+      reply = {
+        type: 'music',
+        title: '回复音乐音乐',
+        description: '放松一下',
+        musiceUrl: 'http://mpge.5nd.com/2015/2015-9-12/66325/1.mp3',
+        thumbMediaId: data.media_id,
+      }
+      console.log(reply)
     }
 
     this.body = reply

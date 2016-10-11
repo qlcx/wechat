@@ -4,10 +4,12 @@ var Promise = require('bluebird')
 //对node.js的request模块进行promise化
 var request = Promise.promisify(require('request'))
 var util = require('./util')
+var fs = require('fs')
 
 var prefix = 'https://api.weixin.qq.com/cgi-bin/'
 var api = {
-  accessToken: prefix + 'token?grant_type=client_credential'
+  accessToken: prefix + 'token?grant_type=client_credential',
+  upload: prefix + 'media/upload?',
 }
 
 //处理access_toke  有效期7200s
@@ -17,6 +19,19 @@ function Wechat(opts) {
   this.appSecret = opts.appSecret
   this.getAccessToken = opts.getAccessToken
   this.saveAccessToken = opts.saveAccessToken
+
+  //fetch票据
+  this.fetchAccessToken()
+}
+
+Wechat.prototype.fetchAccessToken = function(data) {
+  var that = this
+  if(this.access_token && this.expires_in) {
+    if(this.isValidAccessToken(this)) {
+      //如果this上已经有access_token/expires_in并且有效期没有过的话
+      return Promise.resolve(this)
+    }
+  }
 
   //读取票据信息
   this.getAccessToken()
@@ -49,6 +64,8 @@ function Wechat(opts) {
 
       //写入票据信息
       that.saveAccessToken(data)
+
+      return Promise.resolve(data)
     })
 }
 
@@ -86,6 +103,35 @@ Wechat.prototype.updateAccessToken = function(data) {
 
       resolve(data)
     })
+  })
+}
+
+//上传临时素材
+Wechat.prototype.uploadMaterial = function(type, filepath) {
+  var that = this
+  var form = {
+    media: fs.createReadStream(filepath)
+  }
+  
+  return new Promise(function(resolve, reject) {
+    that
+      .fetchAccessToken()
+      .then(function(data) {
+        var url = api.upload + 'access_token=' + data.access_token + '&type=' + type
+
+        request({method: 'POST', url: url, formData: form}).then(function(res) {
+          var _data = JSON.parse(res.body)
+
+          if(_data) {
+            resolve(_data)
+          } else {
+            throw new Error('Upload material failed')
+          }
+        })
+        .catch(function(err) {
+          reject(err)
+        })
+      })
   })
 }
 
