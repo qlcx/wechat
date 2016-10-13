@@ -182,6 +182,65 @@ exports.reply = function* (next) {
       console.log(JSON.stringify(results))
 
       reply = '11'
+    } else if(content = '12') {
+      //创建分组wechat
+      var group = yield wechatApi.createGroup('wechat3')
+      console.log('新分组 wechat')
+      console.log(group)
+
+      //获得分组列表
+      var groups = yield wechatApi.fetchGroups()
+      console.log('加了 wechat 后的分组列表')
+      console.log(groups)
+
+      //查看自己的分组
+      var group2 = yield wechatApi.checkGroup(message.FromUserName)
+      console.log('查看自己的分组')
+      console.log(group2)
+
+      //移动分组(移动到id=101的分组)
+      var result = yield wechatApi.moveGroup(message.FromUserName, 101)
+      console.log('移动到id=101的分组')
+      console.log(result)
+
+      //移动后的分组列表
+      var groups2 = yield wechatApi.fetchGroups()
+      console.log('移动后的分组列表')
+      console.log(groups2)
+
+      //批量移动分组(批量移动到100分组)
+      var result2 = yield wechatApi.moveGroup([message.FromUserName], 100)
+      console.log('批量移动到100分组')
+      console.log(result2)
+
+      //移动后的分组列表
+      var groups3 = yield wechatApi.fetchGroups()
+      console.log('批量移动后的分组列表')
+      console.log(groups3)
+
+      //修改分组名
+      var result3 = yield wechatApi.updateGroup(101, 'wechat101')
+      console.log('101 wechat2 改名 wechat101')
+      console.log(result3)
+
+      //改名后的分组列表
+      var groups4 = yield wechatApi.fetchGroups()
+      console.log('改名后的分组列表')
+      console.log(groups4)
+
+      //删除分组
+      var result4 = yield wechatApi.deleteGroup(100)
+      console.log('删除100  wechat分组')
+      console.log(result4)
+
+
+      //删除100后的分组列表
+      var groups5 = yield wechatApi.fetchGroups()
+      console.log('删除100后的分组列表')
+      console.log(groups5)
+
+
+      reply = 'Group done'
     }
 
     this.body = reply
