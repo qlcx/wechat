@@ -149,6 +149,39 @@ exports.reply = function* (next) {
       })
 
       reply = news
+    } else if(content === '11') {
+      //获取素材总数
+      var counts = yield wechatApi.countMaterial()
+
+      console.log(JSON.stringify(counts))
+
+      //获取素材列表 图片&视频&语音&图文 (并行任务)
+      var results = yield [
+        wechatApi.batchMaterial({
+          type: 'image',
+          offset: 0,
+          count: 10
+        }),
+        wechatApi.batchMaterial({
+          type: 'video',
+          offset: 0,
+          count: 10
+        }),
+        wechatApi.batchMaterial({
+          type: 'voice',
+          offset: 0,
+          count: 10
+        }),
+        wechatApi.batchMaterial({
+          type: 'news',
+          offset: 0,
+          count: 10
+        }),
+      ]
+
+      console.log(JSON.stringify(results))
+
+      reply = '11'
     }
 
     this.body = reply
