@@ -113,7 +113,43 @@ exports.reply = function* (next) {
         mediaId: data.media_id,
       }
       console.log(reply)
-    } 
+    }  else if(content === '10') {
+      //上传图片对象
+      var picData = yield wechatApi.uploadMaterial('image', __dirname + '/2.jpg', {type: 'image'})
+
+      var media = {
+        articles: [{
+          title: 'tututu',
+          thumb_media_id: picData.media_id,
+          author: 'Scott',
+          digest: '没有摘要',
+          show_cover_pic: 1,
+          content: '没有内容',
+          content_source_url: 'https://github.com',
+        },]
+      }
+
+      //上传图文素材
+      var data = yield wechatApi.uploadMaterial('news', media, {})
+
+      //获取图文永久素材
+      var data = yield wechatApi.fetchMaterial(data.media_id, 'news', {})
+
+      //回复
+      var items = data.news_item
+      var news = []
+      
+      items.forEach(function(item) {
+        news.push({
+          title: item.title,
+          decription: item.digest,
+          picUrl: picData.url,
+          url: item.url
+        })
+      })
+
+      reply = news
+    }
 
     this.body = reply
   }
