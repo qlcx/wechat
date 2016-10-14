@@ -133,12 +133,12 @@ exports.reply = function* (next) {
       var data = yield wechatApi.uploadMaterial('news', media, {})
 
       //获取图文永久素材
-      var data = yield wechatApi.fetchMaterial(data.media_id, 'news', {})
+      var data1 = yield wechatApi.fetchMaterial(data.media_id, 'news', {})
 
       //回复
-      var items = data.news_item
+      var items = data1.news_item
       var news = []
-      
+
       items.forEach(function(item) {
         news.push({
           title: item.title,
@@ -182,7 +182,7 @@ exports.reply = function* (next) {
       console.log(JSON.stringify(results))
 
       reply = '11'
-    } else if(content = '12') {
+    } else if(content === '12') {
       //创建分组wechat
       var group = yield wechatApi.createGroup('wechat3')
       console.log('新分组 wechat')
@@ -241,6 +241,28 @@ exports.reply = function* (next) {
 
 
       reply = 'Group done'
+    } else if(content === '13') {
+      //获取用户数据
+      var user = yield wechatApi.fetchUsers(message.FromUserName, 'en')
+      console.log(user)
+
+      //批量获取用户数据
+      var openIds = [
+        {
+          openid: message.FromUserName,
+          lang: 'en'
+        }
+      ]
+      var users = yield wechatApi.fetchUsers(openIds)
+      console.log(users)
+
+      reply = JSON.stringify(user)
+    } else if(content === '14') {
+      //获取用户列表
+      var userlist = yield wechatApi.listUsers()
+      console.log(userlist)
+
+      reply = userlist.total
     }
 
     this.body = reply
