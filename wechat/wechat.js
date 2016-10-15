@@ -41,8 +41,15 @@ var api = {
     fetch: prefix + 'user/info?', //获取用户基本信息
     batchFetch: prefix + 'user/info/batchget?', //批量获取用户基本信息
     list: prefix + 'user/get?', //获取用户列表
-
   },
+  mass: {
+    //群发消息
+    group: prefix + 'message/mass/sendall?', //分组群发
+    openId: prefix + 'message/mass/send?',  //根据openId列表群发
+    del: prefix + 'message/mass/delete?', // 删除群发
+    preview: prefix + 'message/mass/preview?', //预览接口
+    check: prefix + 'message/mass/get?',  //查询群发消息发送状态
+  }
 }
 
 //处理access_toke  有效期7200s
@@ -662,6 +669,173 @@ Wechat.prototype.listUsers = function(openId) {
             resolve(_data)
           } else {
             throw new Error('list user failed')
+          }
+        })
+        .catch(function(err) {
+          reject(err)
+        })
+      })
+  })
+}
+
+//分组群发
+Wechat.prototype.sendByGroup = function(type, message, groupId) {
+  var that = this
+
+  var msg = {
+    filter: {},
+    msgtype: type,
+  }
+
+  msg[type] = message
+
+  if(!groupId) {
+    //判断是否群发给所有人
+    msg.filter.is_to_all = true
+  } else {
+    //按分组群发
+    msg.filter = {
+      is_to_all: false,
+      group_id: groupId,
+    }
+  }
+
+  return new Promise(function(resolve, reject) {
+    that
+      .fetchAccessToken()
+      .then(function(data) {
+        var url = api.mass.group + 'access_token=' + data.access_token
+        request({method: 'POST', url: url, body: msg, json: true}).then(function(res) {
+          var _data = res.body
+
+          if(_data) {
+            resolve(_data)
+          } else {
+            throw new Error('sendByGroup failed')
+          }
+        })
+        .catch(function(err) {
+          reject(err)
+        })
+      })
+  })
+}
+
+//根据openId列表群发
+Wechat.prototype.sendByOpenId = function(type, message, openIds) {
+  var that = this
+
+  var msg = {
+    msgtype: type,
+    touser: openIds
+  }
+
+  msg[type] = message
+
+  return new Promise(function(resolve, reject) {
+    that
+      .fetchAccessToken()
+      .then(function(data) {
+        var url = api.mass.openId + 'access_token=' + data.access_token
+        request({method: 'POST', url: url, body: msg, json: true}).then(function(res) {
+          var _data = res.body
+
+          if(_data) {
+            resolve(_data)
+          } else {
+            throw new Error('send by openId failed')
+          }
+        })
+        .catch(function(err) {
+          reject(err)
+        })
+      })
+  })
+}
+
+//删除群发
+Wechat.prototype.deleteMass = function(msgId) {
+  var that = this
+
+  return new Promise(function(resolve, reject) {
+    that
+      .fetchAccessToken()
+      .then(function(data) {
+        var url = api.mass.del + 'access_token=' + data.access_token
+
+        var form = {
+          msg_id: msgId
+        }
+        request({method: 'POST', url: url, body: form, json: true}).then(function(res) {
+          var _data = res.body
+
+          if(_data) {
+            resolve(_data)
+          } else {
+            throw new Error('delete message failed')
+          }
+        })
+        .catch(function(err) {
+          reject(err)
+        })
+      })
+  })
+}
+
+//预览接口
+Wechat.prototype.previewMass = function(type, message, openIds) {
+  var that = this
+
+  var msg = {
+    msgtype: type,
+    touser: openIds
+  }
+
+  msg[type] = message
+
+  return new Promise(function(resolve, reject) {
+    that
+      .fetchAccessToken()
+      .then(function(data) {
+        var url = api.mass.preview + 'access_token=' + data.access_token
+
+        request({method: 'POST', url: url, body: msg, json: true}).then(function(res) {
+          var _data = res.body
+
+          if(_data) {
+            resolve(_data)
+          } else {
+            throw new Error('preview message failed')
+          }
+        })
+        .catch(function(err) {
+          reject(err)
+        })
+      })
+  })
+}
+
+//查询群发消息发送状态
+Wechat.prototype.checkMass = function(msgId) {
+  var that = this
+
+  var form = {
+    msg_id: msgId
+  }
+
+  return new Promise(function(resolve, reject) {
+    that
+      .fetchAccessToken()
+      .then(function(data) {
+        var url = api.mass.check + 'access_token=' + data.access_token
+
+        request({method: 'POST', url: url, body: form, json: true}).then(function(res) {
+          var _data = res.body
+
+          if(_data) {
+            resolve(_data)
+          } else {
+            throw new Error('check message failed')
           }
         })
         .catch(function(err) {

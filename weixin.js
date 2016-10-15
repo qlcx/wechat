@@ -46,6 +46,7 @@ exports.reply = function* (next) {
     if(content === '1') {
       reply = '1111111'
       console.log(reply)
+      console.log('message.FromUserName: ' + message.FromUserName)
     } else if(content === '2') {
       reply = '222222222'
       console.log(reply)
@@ -263,6 +264,39 @@ exports.reply = function* (next) {
       console.log(userlist)
 
       reply = userlist.total
+    } else if(content === '15') {
+      //图文消息
+      var mpnews = {
+        //直接那永久素材中已存在的media_id
+        media_id: 'kf5qul5vyqcWJK31VUM0lxvhv7h9QIikSkIkq5ZxatQ'
+      }
+      //文字消息
+      var text = {
+        'content': 'hello wechat'
+      }
+
+      var msgData = yield wechatApi.sendByGroup('mpnews', mpnews, null)
+      console.log(msgData)
+
+      reply = '分组群发成功'
+    } else if(content ==='16') {
+      //预览接口
+      //文字消息
+      var text = {
+        'content': 'hello wechat'
+      }
+
+      //FromUserName
+      var msgData = yield wechatApi.previewMass('text', text, 'oVbCtwAWz9QA50D6xDYi9X3FCbgY')
+      console.log(msgData)
+
+      reply = '预览消息成功'
+    } else if(content ==='17') {
+      //查询群发消息发送状态
+      var msgData = yield wechatApi.checkMass('msgId')
+      console.log(msgData)
+
+      reply = '查询群发消息发送状态成功'
     }
 
     this.body = reply
