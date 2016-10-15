@@ -49,6 +49,13 @@ var api = {
     del: prefix + 'message/mass/delete?', // 删除群发
     preview: prefix + 'message/mass/preview?', //预览接口
     check: prefix + 'message/mass/get?',  //查询群发消息发送状态
+  },
+  menu: {
+    //自定义菜单接口
+    create: prefix + 'menu/create?',  //创建菜单
+    get: prefix + 'menu/get?',  //查询
+    del: prefix + 'menu/delete?',  //删除
+    current: prefix + 'get_current_selfmenu_info?',  //获取自定义菜单配置
   }
 }
 
@@ -836,6 +843,110 @@ Wechat.prototype.checkMass = function(msgId) {
             resolve(_data)
           } else {
             throw new Error('check message failed')
+          }
+        })
+        .catch(function(err) {
+          reject(err)
+        })
+      })
+  })
+}
+
+//创建菜单
+Wechat.prototype.createMenu = function(menu) {
+  var that = this
+
+  return new Promise(function(resolve, reject) {
+    that
+      .fetchAccessToken()
+      .then(function(data) {
+        var url = api.menu.create + 'access_token=' + data.access_token
+
+        request({method: 'POST', url: url, body: menu, json: true}).then(function(res) {
+          var _data = res.body
+
+          if(_data) {
+            resolve(_data)
+          } else {
+            throw new Error('create menu failed')
+          }
+        })
+        .catch(function(err) {
+          reject(err)
+        })
+      })
+  })
+}
+
+//查询菜单
+Wechat.prototype.getMenu = function() {
+  var that = this
+
+  return new Promise(function(resolve, reject) {
+    that
+      .fetchAccessToken()
+      .then(function(data) {
+        var url = api.menu.get + 'access_token=' + data.access_token
+
+        request({method: 'GET', url: url, json: true}).then(function(res) {
+          var _data = res.body
+
+          if(_data) {
+            resolve(_data)
+          } else {
+            throw new Error('get menu failed')
+          }
+        })
+        .catch(function(err) {
+          reject(err)
+        })
+      })
+  })
+}
+
+//删除菜单
+Wechat.prototype.deleteMenu = function() {
+  var that = this
+
+  return new Promise(function(resolve, reject) {
+    that
+      .fetchAccessToken()
+      .then(function(data) {
+        var url = api.menu.del + 'access_token=' + data.access_token
+
+        request({method: 'GET', url: url, json: true}).then(function(res) {
+          var _data = res.body
+
+          if(_data) {
+            resolve(_data)
+          } else {
+            throw new Error('delete menu failed')
+          }
+        })
+        .catch(function(err) {
+          reject(err)
+        })
+      })
+  })
+}
+
+//获取自定义菜单配置
+Wechat.prototype.getCurrentMenu = function() {
+  var that = this
+
+  return new Promise(function(resolve, reject) {
+    that
+      .fetchAccessToken()
+      .then(function(data) {
+        var url = api.menu.current + 'access_token=' + data.access_token
+
+        request({method: 'GET', url: url, json: true}).then(function(res) {
+          var _data = res.body
+
+          if(_data) {
+            resolve(_data)
+          } else {
+            throw new Error('get current menu failed')
           }
         })
         .catch(function(err) {
