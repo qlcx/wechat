@@ -60,6 +60,9 @@ var api = {
     del: prefix + 'menu/delete?',  //删除
     current: prefix + 'get_current_selfmenu_info?',  //获取自定义菜单配置
   },
+  ticket: {
+    get: prefix + 'ticket/getticket?',  //用于调用微信卡券JS API的临时票据
+  }
 }
 
 //处理access_toke  有效期7200s
@@ -69,6 +72,8 @@ function Wechat(opts) {
   this.appSecret = opts.appSecret
   this.getAccessToken = opts.getAccessToken
   this.saveAccessToken = opts.saveAccessToken
+  this.getTicket = opts.getTicket
+  this.saveTicket = opts.saveTicket
 
   //fetch票据
   this.fetchAccessToken()
@@ -76,15 +81,9 @@ function Wechat(opts) {
 
 Wechat.prototype.fetchAccessToken = function(data) {
   var that = this
-  if(this.access_token && this.expires_in) {
-    if(this.isValidAccessToken(this)) {
-      //如果this上已经有access_token/expires_in并且有效期没有过的话
-      return Promise.resolve(this)
-    }
-  }
 
   //读取票据信息
-  this.getAccessToken()
+  return this.getAccessToken()
     .then(function(data) {
       try {
         data = JSON.parse(data)
@@ -108,16 +107,49 @@ Wechat.prototype.fetchAccessToken = function(data) {
       }
     })
     .then(function(data) {
-      that.access_token = data.access_token
-      //expires_in: 凭证过期时间
-      that.expires_in = data.expires_in
-
       //写入票据信息
       that.saveAccessToken(data)
 
       return Promise.resolve(data)
     })
 }
+
+//获取用于调用微信卡券JS API的临时票据
+Wechat.prototype.fetchTicket = function(access_token) {
+  var that = this
+
+  //读取票据信息
+  return this.getTicket()
+    .then(function(data) {
+      try {
+        data = JSON.parse(data)
+      }
+      catch(e) {
+        //文件不存在则更新票据
+        return that.updateTicket(access_token)
+      }
+
+      //判断票据合法性
+      if(that.isValidTicket(data)) {
+        return Promise.resolve(data)
+        /*
+        Promise.resolve('foo')
+        // 等价于
+        new Promise(resolve => resolve('foo'))
+        */
+      } else {
+        //不合法则向服务端请求票据
+        return that.updateTicket(access_token)
+      }
+    })
+    .then(function(data) {
+      //写入票据信息
+      that.saveTicket(data)
+
+      return Promise.resolve(data)
+    })
+}
+
 
 //判断access_token合法性
 Wechat.prototype.isValidAccessToken = function(data) {
@@ -136,11 +168,44 @@ Wechat.prototype.isValidAccessToken = function(data) {
   }
 }
 
+Wechat.prototype.isValidTicket = function(data) {
+  if (!data || !data.ticket || !data.expires_in) {
+    return false
+  }
+
+  var ticket = data.ticket
+  var expires_in = data.expires_in
+  var now = (new Date().getTime())
+
+  if (ticket && now < expires_in) {
+    return true
+  } else {
+    return false
+  }
+}
+
 //向服务端请求票据
-Wechat.prototype.updateAccessToken = function(data) {
+Wechat.prototype.updateAccessToken = function() {
   var appID = this.appID
   var appSecret = this.appSecret
   var url = api.accessToken + '&appid=' + appID + '&secret=' + appSecret
+
+  return new Promise(function(resolve, reject) {
+    request(url).then(function(res) {
+      var data = JSON.parse(res.body)
+      var now = (new Date().getTime())
+      //设置过期时间(将过期时间缩短20s)
+      var expires_in = now + (data.expires_in - 20) * 1000
+
+      data.expires_in = expires_in
+
+      resolve(data)
+    })
+  })
+}
+
+Wechat.prototype.updateTicket = function(access_token) {
+  var url = api.ticket.get + '&access_token=' + access_token + '&type=jsapi'
 
   return new Promise(function(resolve, reject) {
     request(url).then(function(res) {
