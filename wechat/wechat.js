@@ -8,7 +8,10 @@ var util = require('./util')
 var fs = require('fs')
 
 var prefix = 'https://api.weixin.qq.com/cgi-bin/'
+
 var api = {
+  //语义理解接口
+  semanticUrl: 'https://api.weixin.qq.com/semantic/semproxy/search?',
   accessToken: prefix + 'token?grant_type=client_credential',
   temporary: {
     //临时素材
@@ -56,7 +59,7 @@ var api = {
     get: prefix + 'menu/get?',  //查询
     del: prefix + 'menu/delete?',  //删除
     current: prefix + 'get_current_selfmenu_info?',  //获取自定义菜单配置
-  }
+  },
 }
 
 //处理access_toke  有效期7200s
@@ -947,6 +950,34 @@ Wechat.prototype.getCurrentMenu = function() {
             resolve(_data)
           } else {
             throw new Error('get current menu failed')
+          }
+        })
+        .catch(function(err) {
+          reject(err)
+        })
+      })
+  })
+}
+
+//发送语义理解请求
+Wechat.prototype.semantic = function(semanticData) {
+  var that = this
+
+  return new Promise(function(resolve, reject) {
+    that
+      .fetchAccessToken()
+      .then(function(data) {
+        var url = api.semanticUrl + 'access_token=' + data.access_token
+
+        semanticData.appid = data.appID
+
+        request({method: 'POST', url: url, body: semanticData, json: true}).then(function(res) {
+          var _data = res.body
+
+          if(_data) {
+            resolve(_data)
+          } else {
+            throw new Error('semantic failed')
           }
         })
         .catch(function(err) {

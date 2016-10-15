@@ -340,6 +340,19 @@ exports.reply = function* (next) {
       console.log(msgData)
 
       reply = '查询群发消息发送状态成功'
+    } else if(content ==='20') {
+      //发送语义理解请求
+      //订阅号无法测试
+      var semanticData = {
+        query: '寻龙决',
+        city: '南京',
+        category: 'movie',
+        uid: message.FromUserName
+      }
+
+      var _semanticData = yield wechatApi.semantic(semanticData)
+
+      reply = JSON.stringify(_semanticData)
     }
 
     this.body = reply
