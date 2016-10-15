@@ -193,7 +193,6 @@ Wechat.prototype.uploadMaterial = function(type, material, permanent) {
 
         request(options).then(function(res) {
           var _data = res.body
-          console.log(_data)
 
           if(_data) {
             resolve(_data)
@@ -231,7 +230,7 @@ Wechat.prototype.fetchMaterial = function(mediaId, type, permanent) {
         if(permanent) {
           form.media_id = mediaId
           form.access_token = data.access_token
-          options.body = JSON.stringify(form)
+          options.body = form
         } else {
           if(type === 'video') {
             //不是永久素材且type为视频则需要换协议
@@ -243,7 +242,6 @@ Wechat.prototype.fetchMaterial = function(mediaId, type, permanent) {
         if(type === 'news' || type === 'video') {
           request(options).then(function(res) {
             var _data = res.body
-            console.log(_data)
             
             if(_data) {
               resolve(_data)
