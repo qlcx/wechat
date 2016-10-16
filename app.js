@@ -212,8 +212,8 @@ function sign(ticket, url) {
 }
 
 app.use(function *(next) {
-  //如果url中包含用'/moive'字符串
-  if(this.url.indexOf('/moive') > -1) {
+  //如果url中包含用'/movie'字符串
+  if(this.url.indexOf('/movie') > -1) {
     var wechatApi = new Wechat(config.wechat)
     var data = yield wechatApi.fetchAccessToken()
     var access_token = data.access_token
