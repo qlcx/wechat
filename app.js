@@ -35,10 +35,10 @@ var tpl = heredoc(function() {/*
           nonceStr: '<%= noncestr %>', // 必填，生成签名的随机串
           signature: '<%= signature %>',// 必填，签名，见附录1
           jsApiList: [
-            'startRecord'
-            'stopRecord'
-            'onVoiceRecordEnd'
-            'translateVoice'
+            'startRecord',
+            'stopRecord',
+            'onVoiceRecordEnd',
+            'translateVoice',
           ] // 必填，需要使用的JS接口列表，所有JS接口列表见附录2
         });
       </script>
@@ -75,7 +75,7 @@ function sign(ticket, url) {
   var noncestr = createNonce()
   var timestamp = createTimestamp()
   var signature = _sign(noncestr, ticket, timestamp, url)
-
+  
   return {
     noncestr: noncestr,
     timestamp: timestamp,
@@ -91,7 +91,7 @@ app.use(function *(next) {
     var data = yield wechatApi.fetchAccessToken()
     var access_token = data.access_token
     var ticketData = yield wechatApi.fetchTicket(access_token)
-    var ticket = data.ticket
+    var ticket = ticketData.ticket
     var url = this.href
     var params = sign(ticket,url)
   
